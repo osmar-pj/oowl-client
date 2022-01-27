@@ -4,6 +4,48 @@
       <div class="column is-2">
         <div class="card">
           <div class="card-content">
+            <div>
+              <p class="heading">Voltaje Carga (V)</p>
+              <p class="title"> {{ voltCarga }} </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="column is-2">
+        <div class="card">
+          <div class="card-content">
+            <div>
+              <p class="heading">Voltaje Batteria (V)</p>
+              <p class="title"> {{ voltBatt }} </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="column is-2">
+        <div class="card">
+          <div class="card-content">
+            <div>
+              <p class="heading">Corriente Carga (A)</p>
+              <p class="title"> {{ currCarga }} </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="column is-2">
+        <div class="card">
+          <div class="card-content">
+            <div>
+              <p class="heading">Potencia acumulada (W)</p>
+              <p class="title"> {{ potAcumulada }} </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- <div class="columns">
+      <div class="column is-2">
+        <div class="card">
+          <div class="card-content">
             <div class="media">
               <div class="media-content">
                 <div v-show="door">
@@ -59,6 +101,16 @@
         </div>
       </div>
     </div>
+    <div class="card">
+      <div class="card-content">
+        <b-field label="Test">
+          <b-switch type="is-info" @input="controlLed" v-model="ledControl">Prueba led</b-switch>
+        </b-field>
+        <b-field>
+          <b-tag :type="!ledStatus ? 'is-light' : 'is-warning' " rounded>{{ ledStatus ? 'ON' : 'OFF' }} </b-tag>
+        </b-field>
+      </div>
+    </div> -->
   </section>
 </template>
 
@@ -72,15 +124,37 @@ export default {
     return {
       door: false,
       presence: false,
-      weight: 0
+      weight: 0,
+      ledControl: false,
+      ledStatus: false,
+      voltCarga: 0,
+      voltBatt: 0,
+      currCarga: 0,
+      potAcumulada: 0
     }
   },
   mounted() {
     this.$socket.on('sensors', data => {
-      this.door = !!parseInt(data.door)
-      this.presence = !!parseInt(data.presence)
-      this.weight = parseFloat(data.weight)
+      // this.door = !!parseInt(data.door)
+      // this.presence = !!parseInt(data.presence)
+      // this.weight = parseFloat(data.weight)
+      this.voltCarga = data.ps[5]/10
+      this.voltBatt = data.ps[6]/10
+      this.currCarga = data.ps[7]/10
+      this.potAcumulada = data.ps[18]
     })
+    this.$socket.on('actuator', data => {
+      this.ledStatus = data
+    })
+  },
+  methods: {
+    controlLed() {
+      this.axios.post(`${process.env.VUE_APP_BASE_URL}/api/actuator`, {
+        led: this.ledControl
+      }).then(res => {
+        console.log(res.data)
+      })
+    }
   }
 }
 </script>
